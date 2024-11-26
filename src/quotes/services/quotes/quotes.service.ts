@@ -1,51 +1,98 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CreateQuotesDto } from 'src/quotes/dtos/CreateQuotes.dto';
+import { UpdateQuotesDto } from 'src/quotes/dtos/UpdateQuotes.dto';
 import { Quotes } from 'src/quotes/types/Quotes';
+import { Quotes as QuotesEntity } from 'src/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class QuotesService {
 
-    private fakeQuotes: Quotes[] = [
-        {
-            id: 1,
-            quote: "software is great combination of artistry",
-            author: "Bill Gates",
-            like: 44,
-            dislike: 2,
-            tags: ["software", "technology"]
-        },
-        {
-            id: 2,
-            quote: "software is great",
-            author: "Jane Doe",
-            like: 444,
-            dislike: 20,
-            tags: ["software"]
-        }
-    ]
+    // get the repository
+    constructor(
+        @InjectRepository(QuotesEntity)
+        private readonly quotesRepository: Repository<QuotesEntity>
+    ){}
+
+    private quotes: Quotes[] = []
+    // [
+    //     {
+    //         id: 1,
+    //         quote: "software is great combination of artistry",
+    //         author: "Bill Gates",
+    //         like: 44,
+    //         dislike: 2,
+    //         tags: ["software", "technology"]
+    //     },
+    //     {
+    //         id: 2,
+    //         quote: "software is great",
+    //         author: "Jane Doe",
+    //         like: 444,
+    //         dislike: 20,
+    //         tags: ["software"]
+    //     }
+    // ]
 
     getQuotes(){
-        return this.fakeQuotes;
+        return this.quotesRepository.find();
     }
 
-    getQuotesById(id: number){
-        return this.fakeQuotes.find((quote) => quote.id === id);
-    }
-
-    getQuotesByTag(tag: string){
-        return this.fakeQuotes.filter((quote) => quote.tags.includes(tag));
+    getQuotesById(id: number): Promise<QuotesEntity>{
+        const quote = this.quotesRepository.findOne({ where: { id }});
+        if(quote)
+            return quote;
+        else
+            throw new HttpException('Quote not found!', HttpStatus.BAD_REQUEST);
     }
 
     createQuotes(quotesDto: CreateQuotesDto){
-        const newQuote: Quotes = {
-            id: this.fakeQuotes.length + 1,
-            quote: quotesDto.quote,
-            author: quotesDto.author,
-            like: quotesDto.like,
-            dislike: quotesDto.dislike,
-            tags: quotesDto.tags,
-        };
+        const { tags, ...rest } = quotesDto;
+        const tagsArray = tags.split(';').map(tag => tag.trim());
 
-        this.fakeQuotes.push(newQuote);
+        const newQuote = this.quotesRepository.create({
+            ...rest,
+            tags: tagsArray
+        });
+        return this.quotesRepository.save(newQuote);
+    }
+
+    async updateQuote(id: number, updateQuoteDto: UpdateQuotesDto){
+        const quote = await this.quotesRepository.findOne({ where: { id } });
+        if(quote){
+            // if(updateQuoteDto.tags)
+            //     updateQuoteDto.tags = updateQuoteDto.tags.split(';').map(tag => tag.trim());
+
+            const { tags, ...rest } = updateQuoteDto;
+            const tagsArray = tags.split(';').map(tag => tag.trim());
+
+            const updatedTagDto = this.quotesRepository.create({
+                ...rest,
+                tags: tagsArray
+            });
+            
+            const updatedQuote = this.quotesRepository.merge(quote, updatedTagDto);
+            return await this.quotesRepository.save(updatedQuote);
+        }
+    }
+
+    async deleteQuote(id: number){
+        const quote = await this.quotesRepository.delete(id);
+        if(quote.affected === 0) 
+            throw new HttpException('Quote not found!', HttpStatus.BAD_REQUEST);
+    }
+
+    
+    // return the tags in all the quotes
+    async getTags(){
+        const quote = await this.quotesRepository.find();
+        const tagsArray = new Set<string>();
+
+        quote.forEach(quote => {
+            quote.tags.forEach(tag => tagsArray.add(tag));
+        });
+
+        return Array.from(tagsArray);
     }
 }

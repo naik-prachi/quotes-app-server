@@ -1,8 +1,15 @@
+import { ArrayNotEmpty, IsArray, IsString } from "class-validator";
+
 export class CreateQuotesDto{
-    id: number;
+
+    @IsString()
     quote: string;
-    like: number;
-    dislike: number;
+
+    @IsString()
     author: string;
-    tags: string[];
+
+    // @IsArray()
+    // @ArrayNotEmpty()
+    @IsString()
+    tags: string;
 }
