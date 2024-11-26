@@ -11,6 +11,7 @@ import { LocalStrategy } from './utils/LocalStrategy';
   imports: [TypeOrmModule.forFeature([Users]), PassportModule],
   controllers: [AuthController],
   providers: [
+    UsersService,
     {
       provide: 'AUTH_SERVICE',
       useClass: AuthService,
@@ -20,6 +21,9 @@ import { LocalStrategy } from './utils/LocalStrategy';
       useClass: UsersService,
     },
     LocalStrategy,
-  ]
+    AuthService,
+  ],
+  exports: [AuthService],
 })
+
 export class AuthModule {}

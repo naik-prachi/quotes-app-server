@@ -12,11 +12,17 @@ export class AuthService {
     async signIn(email: string, pass: string){
         console.log('inside authservice');
         const userDB = await this.userService.findUserByEmail(email);
-        if(userDB?.password !== pass) {
-           throw new UnauthorizedException();
+        if(userDB && userDB.password === pass) {
+            console.log(userDB, 'User validation successful!');
+            // const { password, ...result } = userDB;
+            return userDB;
+            // return result;
         }
+        console.log('User validation failed!');
+        // return null;
+        throw new UnauthorizedException('Invalid email or password');
+        
 
-        const { password, ...result } = userDB;
-        return result;
+        
     }
 }
