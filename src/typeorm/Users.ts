@@ -1,11 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Quotes } from "./Quotes";
 
 @Entity()
 export class Users{
-    @PrimaryGeneratedColumn({
-        type: 'int'
-    })
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({
         type: 'varchar',
@@ -24,7 +23,8 @@ export class Users{
     @Column({
         type: 'varchar',
         nullable: false,
-        default: ''
+        default: '',
+        unique: true,
     })
     email: string;
 
@@ -34,4 +34,8 @@ export class Users{
         default: ''
     })
     password: string;
+
+    @OneToMany(() => Quotes)
+    @JoinColumn()
+    quotes: Quotes[];
 }

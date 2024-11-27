@@ -1,5 +1,5 @@
 export interface Quotes{
-    id: number;
+    id: string;
     quote: string;
     like: number;
     dislike: number;

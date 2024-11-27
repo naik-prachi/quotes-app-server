@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateQuotesDto } from 'src/quotes/dtos/CreateQuotes.dto';
-import { UpdateQuotesDto } from 'src/quotes/dtos/UpdateQuotes.dto';
+import { CreateQuotesDto } from 'src/quotes/dto/CreateQuotes.dto';
+import { UpdateQuotesDto } from 'src/quotes/dto/UpdateQuotes.dto';
 import { Quotes } from 'src/quotes/types/Quotes';
 import { Quotes as QuotesEntity } from 'src/typeorm';
 import { Repository } from 'typeorm';
@@ -16,30 +16,12 @@ export class QuotesService {
     ){}
 
     private quotes: Quotes[] = []
-    // [
-    //     {
-    //         id: 1,
-    //         quote: "software is great combination of artistry",
-    //         author: "Bill Gates",
-    //         like: 44,
-    //         dislike: 2,
-    //         tags: ["software", "technology"]
-    //     },
-    //     {
-    //         id: 2,
-    //         quote: "software is great",
-    //         author: "Jane Doe",
-    //         like: 444,
-    //         dislike: 20,
-    //         tags: ["software"]
-    //     }
-    // ]
 
     getQuotes(){
         return this.quotesRepository.find();
     }
 
-    getQuotesById(id: number): Promise<QuotesEntity>{
+    getQuotesById(id: string): Promise<QuotesEntity>{
         const quote = this.quotesRepository.findOne({ where: { id }});
         if(quote)
             return quote;
@@ -58,7 +40,7 @@ export class QuotesService {
         return this.quotesRepository.save(newQuote);
     }
 
-    async updateQuote(id: number, updateQuoteDto: UpdateQuotesDto){
+    async updateQuote(id: string, updateQuoteDto: UpdateQuotesDto){
         const quote = await this.quotesRepository.findOne({ where: { id } });
         if(quote){
             // if(updateQuoteDto.tags)
@@ -77,7 +59,7 @@ export class QuotesService {
         }
     }
 
-    async deleteQuote(id: number){
+    async deleteQuote(id: string){
         const quote = await this.quotesRepository.delete(id);
         if(quote.affected === 0) 
             throw new HttpException('Quote not found!', HttpStatus.BAD_REQUEST);

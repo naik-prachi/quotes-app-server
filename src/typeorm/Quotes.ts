@@ -1,14 +1,12 @@
 import { flatten } from "@nestjs/common";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Users } from "./Users";
 
 @Entity()
 export class Quotes{
 
-    @PrimaryGeneratedColumn({
-        type: 'int',
-        name: 'id',
-    })
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({
         type: 'varchar',
@@ -40,4 +38,8 @@ export class Quotes{
 
     @Column('simple-array')
     tags: string[];
+
+    @ManyToOne(type => Users, user => user.quotes) 
+    @JoinColumn()
+    user: Users;
 }
